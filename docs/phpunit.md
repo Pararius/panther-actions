@@ -34,5 +34,5 @@ final class PantherActionsTest extends PantherTestCase
 
 ## Troubleshooting
 If you followed the instructions on the Symfony Panther documentation then all should work. If not then you might have forgotten:
-* Make sure the test webserver is running. For a docker example you can check this [../docker-compose.yaml](docker-compose.yaml).
-* Make sure you've added Panther to your `phpunit.xml.dist`. [../phpunit.xml.dist](example)
+* Make sure the test webserver is running. For a docker example you can check the docker-compose.yaml file in this project.
+* Make sure you've added Panther to your `phpunit.xml.dist`. For an example you check the phpunit.xml.dist in this project.
