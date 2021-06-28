@@ -38,7 +38,7 @@ class PantherContext extends PantherTestCase implements Context
      */
     public function beforeScenario(): void
     {
-        self::$pantherClient->getCookieJar()->clear();
+        self::$pantherClient?->getCookieJar()->clear();
     }
 
     /**
