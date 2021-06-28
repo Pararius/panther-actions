@@ -5,6 +5,8 @@ services:
     build:
       context: .
       target: php
+    env_file:
+      - .env
     volumes:
     - ./:/app:delegated
     networks:

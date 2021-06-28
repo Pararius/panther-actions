@@ -12,7 +12,8 @@ install: ## Install dependencies
 test: ## Runs PHPUnit tests
 	$(DOCKER_COMPOSE) up -d test-webserver
 	$(DOCKER_COMPOSE) run --rm ready -wait tcp://test-webserver:9080 -timeout 5s
-	$(DOCKER_COMPOSE) run --rm php vendor/bin/phpunit
+	$(DOCKER_COMPOSE) run --rm php composer run phpunit
+	$(DOCKER_COMPOSE) run --rm php composer run behat
 	$(DOCKER_COMPOSE) stop test-webserver
 
 cs-fix: ## Fixes code standards

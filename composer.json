@@ -24,7 +24,8 @@
     "symfony/framework-bundle": "^5.3",
     "symfony/security-core": "^5.3",
     "friendsofphp/php-cs-fixer": "^3.0",
-    "phpstan/phpstan": "^0.12.90"
+    "phpstan/phpstan": "^0.12.90",
+    "behat/behat": "^3.8"
   },
   "autoload": {
     "psr-4": { "PantherActions\\": "src/" }
@@ -40,6 +41,8 @@
   "scripts": {
     "cs-check": "php-cs-fixer fix -vvv --diff --dry-run",
     "cs-fix": "php-cs-fixer fix --verbose --diff",
-    "phpstan": "phpstan analyze --no-progress --memory-limit=-1"
+    "phpstan": "phpstan analyze --no-progress --memory-limit=-1",
+    "phpunit": "phpunit",
+    "behat": "behat -f pretty"
   }
 }
