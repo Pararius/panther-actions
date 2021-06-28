@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace PantherActions;
 
+use Symfony\Component\Panther\Client as PantherClient;
 use function assert;
 use Facebook\WebDriver\WebDriverBy;
 use PHPUnit\Framework\Assert as PHPUnit;
@@ -171,6 +172,12 @@ trait PantherActions
     {
         $html = PantherTestCase::createPantherClient()->getPageSource();
         PHPUnit::assertStringContainsStringIgnoringCase($text, $html);
+    }
+
+    public static function assertPageTitleContainsIgnoringCase(string $expectedTitle): void
+    {
+        $title = PantherTestCase::createPantherClient()->getTitle();
+        self::assertStringContainsStringIgnoringCase($expectedTitle, $title);
     }
 
     protected static function submitTheFormNamed(string $name): void

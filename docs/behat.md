@@ -45,13 +45,7 @@ class LoginContext extends PantherContext
      */
     public function i_log_in_with(string $email): void
     {
-        // visit homepage to have a cookie set, this is needed to ensure the
-        // right cookie parameters (like domain) are set by the application.
-        // WebDriver will otherwise reject the cookie that we set below.
-        $this->i_am_on_homepage();
-
         $user = $this->users->find($email);
-
         self::loginUser($user);
     }
 ```

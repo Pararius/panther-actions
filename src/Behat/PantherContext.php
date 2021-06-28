@@ -158,7 +158,7 @@ class PantherContext extends PantherTestCase implements Context
     public function the_page_title_should_contain(string $title): void
     {
         $title = self::fixStepArgument($title);
-        self::assertPageTitleContains($title);
+        self::assertPageTitleContainsIgnoringCase($title);
     }
 
     /**
