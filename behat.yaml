@@ -1,0 +1,7 @@
+default:
+  suites:
+    tests:
+      paths:
+        - '%paths.base%/tests/functional/'
+      contexts:
+        - PantherActions\Behat\PantherContext:

@@ -5,8 +5,6 @@ You can integrate this quite easily with PHPUnit. All you need is to add this pa
 composer require pararius/panther-actions --dev
 ```
 
-More instructions on how to install and configure Symfony Panther can be found [here](https://github.com/symfony/panther)
-
 ## Example on how to use this in PHPUnit
 
 ```php
@@ -31,8 +29,15 @@ final class PantherActionsTest extends PantherTestCase
     }
 }
 ```
+## Firefox instead of Chrome
+If you prefer firefox then you can add a `setUp` function to your unit tests:
+```php
+public function setUp()
+{
+    PantherTestCase::createPantherClient(['browser' => 'firefox']);
+}
+```
 
 ## Troubleshooting
 If you followed the instructions on the Symfony Panther documentation then all should work. If not then you might have forgotten:
-* Make sure the test webserver is running. For a docker example you can check the docker-compose.yaml file in this project.
 * Make sure you've added Panther to your `phpunit.xml.dist`. For an example you check the phpunit.xml.dist in this project.
