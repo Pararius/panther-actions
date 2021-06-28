@@ -1,0 +1,41 @@
+---
+name: Continuous Integration
+
+on:
+  pull_request:
+
+env:
+  DOCKER_COMPOSE: docker-compose
+  DOCKER_BUILDKIT: 1
+  COMPOSE_DOCKER_CLI_BUILD: 1
+
+jobs:
+  init:
+    runs-on: ubuntu-latest
+    outputs:
+      application: ${{ steps.filter.outputs.application }}
+    steps:
+    - uses: styfle/cancel-workflow-action@0.9.0
+
+  checks:
+    timeout-minutes: 5
+    runs-on: ubuntu-latest
+    needs: [init]
+    steps:
+    - uses: actions/checkout@v2.3.4
+    - uses: satackey/action-docker-layer-caching@v0.0.11
+      continue-on-error: true
+      with:
+        key: ${{ github.workflow }}-${{ hashFiles('Dockerfile') }}-{hash}
+        restore-keys: ${{ github.workflow }}-${{ hashFiles('Dockerfile') }}-
+    - name: Setup Composer cache
+      uses: actions/cache@v2.1.6
+      with:
+        path: vendor
+        key: |
+          composer-${{ hashFiles('composer.json') }}
+          composer-
+    - run: make install
+    - run: make cs-check
+    - run: make phpstan
+    - run: make test

@@ -1,0 +1,34 @@
+version: '3.7'
+
+services:
+  php:
+    build:
+      context: .
+      target: php
+    volumes:
+    - ./:/app:delegated
+    networks:
+    - test
+
+  ready:
+    image: jwilder/dockerize
+    networks:
+    - test
+
+  test-webserver:
+    build:
+      context: .
+      target: php
+    command: [ "php", "-dvariables_order=EGPCS", "-S", "0.0.0.0:9080", "-t", "/app/tests/public" ]
+    environment:
+      APP_ENV: test
+    volumes:
+    - ./:/app:delegated
+    - ~/.composer/cache:/composer/cache:delegated
+    ports:
+    - "9080:9080"
+    networks:
+    - test
+
+networks:
+  test:

@@ -1,0 +1,45 @@
+{
+  "name": "pararius/panther-actions",
+  "type": "library",
+  "description": "An extension for the browser testing and web scraping library for PHP and Symfony. This adds extra assertions, actions for Symfony Panther.",
+  "keywords": ["E2E", "testing", "webdriver", "symfony", "behat"],
+  "homepage": "https://github.com/pararius/panther-actions",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Johnny van de Laar",
+      "homepage": "https://github.com/jvdlaar"
+    }
+  ],
+  "require": {
+    "php": ">=7.3",
+    "ext-dom": "*",
+    "ext-libxml": "*",
+    "ext-zip": "*",
+    "symfony/panther": "^1.0.1",
+    "phpunit/phpunit": "^9.5"
+  },
+  "require-dev": {
+    "symfony/dotenv": "^5.3",
+    "symfony/framework-bundle": "^5.3",
+    "symfony/security-core": "^5.3",
+    "friendsofphp/php-cs-fixer": "^3.0",
+    "phpstan/phpstan": "^0.12.90"
+  },
+  "autoload": {
+    "psr-4": { "PantherActions\\": "src/" }
+  },
+  "autoload-dev": {
+    "psr-4": { "Tests\\PantherActions\\": "tests/" }
+  },
+  "suggest": {
+    "behat/behat": "To integrate Symfony Panther with behat.",
+    "symfony/framework-bundle": "To integrate logging in via Symfony.",
+    "symfony/security-core": "To integrate logging in via Symfony."
+  },
+  "scripts": {
+    "cs-check": "php-cs-fixer fix -vvv --diff --dry-run",
+    "cs-fix": "php-cs-fixer fix --verbose --diff",
+    "phpstan": "phpstan analyze --no-progress --memory-limit=-1"
+  }
+}
