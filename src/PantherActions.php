@@ -173,6 +173,12 @@ trait PantherActions
         PHPUnit::assertStringContainsStringIgnoringCase($text, $html);
     }
 
+    protected static function assertPageTitleContainsIgnoringCase(string $expectedTitle): void
+    {
+        $title = PantherTestCase::createPantherClient()->getTitle();
+        self::assertStringContainsStringIgnoringCase($expectedTitle, $title);
+    }
+
     protected static function submitTheFormNamed(string $name): void
     {
         self::submitForm("form[name={$name}]");
