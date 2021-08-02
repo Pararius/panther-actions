@@ -1,5 +1,5 @@
 # base php image
-FROM php:8.0.8-fpm-alpine3.13 AS php
+FROM php:8.0.9-fpm-alpine3.13 AS php
 COPY --from=mlocati/php-extension-installer /usr/bin/install-php-extensions /usr/bin/
 
 RUN apk add --no-cache git curl chromium chromium-chromedriver
