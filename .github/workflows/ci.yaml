@@ -15,7 +15,7 @@ jobs:
     outputs:
       application: ${{ steps.filter.outputs.application }}
     steps:
-    - uses: styfle/cancel-workflow-action@0.9.0
+    - uses: styfle/cancel-workflow-action@0.9.1
 
   checks:
     timeout-minutes: 5
