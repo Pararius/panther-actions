@@ -1,11 +1,19 @@
-# panther-actions
-Implements a number of actions for Symfony Panther that you can use in either PHPUnit or Behat. This makes development with Symfony Panther a bit easier. The project consists of a set of traits that you can easily incorporate in your test suite.
+# Panther Actions
+This project can be used for two reasons:
+* Use Symfony Panther inside Behat.
+* Extend Symfony Panther with a number of additional actions.
+
+At first, we developed this package to replace Behat Mink. Mink has a history of slow updates and this is troublesome when you want to upgrade your project to the newest PHP version. We created a Behat Context with the same signature as a lot of often used Behat Mink steps. This can help you to replace Behat Mink with Symfony Panther, while still using the expressive syntax of Behat.
+
+On a newer project we didn't want to use Behat and went with PHPUnit. There we started to use Symfony Panther, but quickly found out that we were missing a lot of actions that we got used to, while using Behat Mink. Therefore, we modified this package to be used inside a project without Behat as well.
 
 ## What is Symfony Panther?
 > Panther is a convenient standalone library to scrape websites and to run end-to-end tests using real browsers.
 
+[Symfony Panther](https://github.com/symfony/panther)
+
 ## Test coverage
-A number of unit tests have been added to ensure the functionality. Not all functions are unit-tested. We will add more test coverage later on. For easy development and CI the docker and docker compose configurations are added as well.
+A number of unit tests have been added to ensure the functionality. Not all functions are unit-tested. We will add more test coverage later on. For easy development and CI the docker and docker compose configurations have been added as well.
 
 ## Using this without Symfony Framework
 Symfony Panther can be used without the Symfony framework. This package can be used without the Symfony framework as well.
