@@ -11,6 +11,9 @@
       "homepage": "https://github.com/jvdlaar"
     }
   ],
+  "config": {
+    "sort-packages": true
+  },
   "require": {
     "php": ">=7.3",
     "ext-dom": "*",
@@ -20,12 +23,12 @@
     "phpunit/phpunit": "^9.5"
   },
   "require-dev": {
+    "behat/behat": "^3.8",
+    "pararius/cs": "^0.1.0",
+    "phpstan/phpstan": "^0.12.90",
     "symfony/dotenv": "^5.3",
     "symfony/framework-bundle": "^5.3",
-    "symfony/security-core": "^5.3",
-    "friendsofphp/php-cs-fixer": "^3.0",
-    "phpstan/phpstan": "^0.12.90",
-    "behat/behat": "^3.8"
+    "symfony/security-core": "^5.3"
   },
   "autoload": {
     "psr-4": { "PantherActions\\": "src/" }
