@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace PantherActions;
 
-use function assert;
 use Facebook\WebDriver\WebDriverBy;
 use PHPUnit\Framework\Assert as PHPUnit;
 use Symfony\Component\Panther\DomCrawler\Crawler;
@@ -27,7 +26,7 @@ trait PantherActions
 
     protected static function assertCurrentAddressMatches(string $page): void
     {
-        assert(PantherTestCase::$baseUri !== null);
+        \assert(PantherTestCase::$baseUri !== null);
         $startUrl = rtrim(PantherTestCase::$baseUri, '/') . '/';
         $page = !str_starts_with($page, 'http') ? $startUrl . ltrim($page, '/') : $page;
 
@@ -145,7 +144,7 @@ trait PantherActions
     {
         $body = self::bodyText();
         $body = preg_replace('#\R#', ' ', $body);
-        assert($body !== null);
+        \assert($body !== null);
         PHPUnit::assertStringContainsStringIgnoringCase($text, $body);
     }
 
@@ -201,7 +200,7 @@ trait PantherActions
         $form = $field->filterXPath('ancestor::form')->form();
         $name = $field->attr('name');
         PHPUnit::assertInstanceOf(ChoiceFormField::class, $form[$name]);
-        assert($form[$name] instanceof ChoiceFormField);
+        \assert($form[$name] instanceof ChoiceFormField);
         $form[$name]->select($option);
     }
 
@@ -211,9 +210,9 @@ trait PantherActions
         $form = $field->filterXPath('ancestor::form')->form();
         $name = $field->attr('name');
         PHPUnit::assertInstanceOf(ChoiceFormField::class, $form[$name]);
-        assert($form[$name] instanceof ChoiceFormField);
+        \assert($form[$name] instanceof ChoiceFormField);
         $value = $field->attr('value');
-        assert($value !== null);
+        \assert($value !== null);
         $form[$name]->select($value);
     }
 
@@ -223,7 +222,7 @@ trait PantherActions
         $form = $field->filterXPath('ancestor::form')->form();
         $name = $field->attr('name');
         PHPUnit::assertInstanceOf(ChoiceFormField::class, $form[$name]);
-        assert($form[$name] instanceof ChoiceFormField);
+        \assert($form[$name] instanceof ChoiceFormField);
         $form[$name]->untick();
     }
 
@@ -298,7 +297,7 @@ trait PantherActions
             )
         ;
 
-        assert($field instanceof Crawler);
+        \assert($field instanceof Crawler);
 
         // Find input field connected to label.
         if ($field->getTagName() === 'label') {

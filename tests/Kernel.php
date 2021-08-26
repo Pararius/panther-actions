@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Tests\PantherActions;
 
-use function dirname;
 use Symfony\Bundle\FrameworkBundle\Kernel\MicroKernelTrait;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 use Symfony\Component\HttpKernel\Kernel as BaseKernel;
@@ -18,7 +17,7 @@ class Kernel extends BaseKernel
 
     public function getProjectDir(): string
     {
-        return $this->cachedProjectDir ??= dirname(__DIR__);
+        return $this->cachedProjectDir ??= \dirname(__DIR__);
     }
 
     protected function configureContainer(ContainerConfigurator $container): void
