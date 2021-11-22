@@ -60,12 +60,32 @@ final class PantherActionsTest extends PantherTestCase
     }
 
     /** @test */
+    public function it_can_follow_link_with_context(): void
+    {
+        self::goTo('/page-with-context.html');
+        self::assertCurrentAddressMatches('/page-with-context.html');
+
+        self::followLink('Next page', '.wrapper');
+        self::assertCurrentAddressMatches('/other-page.html');
+    }
+
+    /** @test */
     public function it_can_press_a_button(): void
     {
         self::goToHomepage();
         self::assertCurrentAddressMatches('/');
 
         self::pressButton('Submit');
+        self::assertCurrentAddressContains('/other-page.html');
+    }
+
+    /** @test */
+    public function it_can_press_a_button_with_context(): void
+    {
+        self::goTo('/page-with-context.html');
+        self::assertCurrentAddressMatches('/page-with-context.html');
+
+        self::pressButton('Submit', '.wrapper');
         self::assertCurrentAddressContains('/other-page.html');
     }
 
@@ -77,10 +97,24 @@ final class PantherActionsTest extends PantherTestCase
     }
 
     /** @test */
+    public function it_can_assert_a_button_is_visible_with_context(): void
+    {
+        self::goTo('/page-with-context.html');
+        self::assertButtonVisible('Submit', '.wrapper');
+    }
+
+    /** @test */
     public function it_can_assert_a_button_is_not_visible(): void
     {
         self::goTo('/other-page.html');
         self::assertButtonNotVisible('Submit');
+    }
+
+    /** @test */
+    public function it_can_assert_a_button_is_not_visible_with_context(): void
+    {
+        self::goTo('/page-with-context.html');
+        self::assertButtonNotVisible('Other submit', '.wrapper');
     }
 
     /** @test */
@@ -91,10 +125,24 @@ final class PantherActionsTest extends PantherTestCase
     }
 
     /** @test */
+    public function it_can_assert_a_link_is_visible_with_context(): void
+    {
+        self::goTo('/page-with-context.html');
+        self::assertLinkVisible('Next page', '.wrapper');
+    }
+
+    /** @test */
     public function it_can_assert_a_link_is_not_visible(): void
     {
         self::goTo('/other-page.html');
         self::assertLinkNotVisible('Next page');
+    }
+
+    /** @test */
+    public function it_can_assert_a_link_is_not_visible_with_context(): void
+    {
+        self::goTo('/page-with-context.html');
+        self::assertLinkNotVisible('Other link', '.wrapper');
     }
 
     /** @test */
@@ -140,5 +188,27 @@ final class PantherActionsTest extends PantherTestCase
 
         self::submitTheFormNamed('form');
         self::assertCurrentAddressContains('/other-page.html');
+    }
+
+    /** @test */
+    public function it_fills_a_textfield(): void
+    {
+        self::goTo('/form.html');
+        self::assertCurrentAddressMatches('/form.html');
+
+        $value = 'Value of the textfield';
+        self::fillField('A textfield', $value);
+        self::assertFormValue('form', 'a-textfield', $value);
+    }
+
+    /** @test */
+    public function it_fills_a_textfield_by_placeholder(): void
+    {
+        self::goTo('/form.html');
+        self::assertCurrentAddressMatches('/form.html');
+
+        $value = 'Value of the textfield';
+        self::fillField('textfield with placeholder', $value);
+        self::assertFormValue('form', 'placeholder', $value);
     }
 }

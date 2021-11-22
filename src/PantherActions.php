@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace PantherActions;
 
-use Facebook\WebDriver\WebDriverBy;
 use PHPUnit\Framework\Assert as PHPUnit;
 use Symfony\Component\Panther\DomCrawler\Crawler;
 use Symfony\Component\Panther\DomCrawler\Field\ChoiceFormField;
@@ -57,11 +56,13 @@ trait PantherActions
         self::assertCurrentAddressMatches('/');
     }
 
-    protected static function followLink(string $linkText): void
+    protected static function followLink(string $linkText, string $contextSelector = null): void
     {
         $client = PantherTestCase::createPantherClient();
 
-        $link = self::crawler()
+        $crawler = self::crawlerBySelector($contextSelector);
+
+        $link = $crawler
             ->filterXPath(
                 sprintf(
                     <<<'XPATH'
@@ -82,9 +83,11 @@ trait PantherActions
         $client->click($link);
     }
 
-    protected static function pressButton(string $button): void
+    protected static function pressButton(string $button, string $contextSelector = null): void
     {
-        $form = self::crawler()->filterXPath(
+        $crawler = self::crawlerBySelector($contextSelector);
+
+        $form = $crawler->filterXPath(
             sprintf(
                 <<<'XPATH'
                     //form[//button[text()[contains(concat(' ', normalize-space(.), ' '), %1$s)]]]
@@ -108,35 +111,39 @@ trait PantherActions
         }
     }
 
-    protected static function assertButtonVisible(string $button): void
+    protected static function assertButtonVisible(string $button, string $contextSelector = null): void
     {
+        $crawler = self::crawlerBySelector($contextSelector);
         PHPUnit::assertNotCount(
             0,
-            self::crawler()->selectButton($button)
+            $crawler->selectButton($button)
         );
     }
 
-    protected static function assertButtonNotVisible(string $button): void
+    protected static function assertButtonNotVisible(string $button, string $contextSelector = null): void
     {
+        $crawler = self::crawlerBySelector($contextSelector);
         PHPUnit::assertCount(
             0,
-            self::crawler()->selectButton($button)
+            $crawler->selectButton($button)
         );
     }
 
-    protected static function assertLinkVisible(string $link): void
+    protected static function assertLinkVisible(string $link, string $contextSelector = null): void
     {
+        $crawler = self::crawlerBySelector($contextSelector);
         PHPUnit::assertNotCount(
             0,
-            self::crawler()->selectLink($link)
+            $crawler->selectLink($link)
         );
     }
 
-    protected static function assertLinkNotVisible(string $link): void
+    protected static function assertLinkNotVisible(string $link, string $contextSelector = null): void
     {
+        $crawler = self::crawlerBySelector($contextSelector);
         PHPUnit::assertCount(
             0,
-            self::crawler()->selectLink($link)
+            $crawler->selectLink($link)
         );
     }
 
@@ -183,9 +190,9 @@ trait PantherActions
         self::submitForm("form[name={$name}]");
     }
 
-    protected static function fillField(string $fieldText, string $value, string $legend = null): void
+    protected static function fillField(string $fieldText, string $value, string $legend = null, string $contextSelector = null): void
     {
-        $field = self::findFormField($fieldText, $legend);
+        $field = self::findFormField($fieldText, $legend, $contextSelector);
         $field
             ->filterXPath('ancestor::form')
             ->form([
@@ -194,9 +201,9 @@ trait PantherActions
         ;
     }
 
-    protected static function selectOption(string $select, string $option, string $legend = null): void
+    protected static function selectOption(string $select, string $option, string $legend = null, string $contextSelector = null): void
     {
-        $field = self::findFormField($select, $legend);
+        $field = self::findFormField($select, $legend, $contextSelector);
         $form = $field->filterXPath('ancestor::form')->form();
         $name = $field->attr('name');
         PHPUnit::assertInstanceOf(ChoiceFormField::class, $form[$name]);
@@ -204,9 +211,9 @@ trait PantherActions
         $form[$name]->select($option);
     }
 
-    protected static function checkOption(string $option, string $legend = null): void
+    protected static function checkOption(string $option, string $legend = null, string $contextSelector = null): void
     {
-        $field = self::findFormField($option, $legend);
+        $field = self::findFormField($option, $legend, $contextSelector);
         $form = $field->filterXPath('ancestor::form')->form();
         $name = $field->attr('name');
         PHPUnit::assertInstanceOf(ChoiceFormField::class, $form[$name]);
@@ -216,9 +223,9 @@ trait PantherActions
         $form[$name]->select($value);
     }
 
-    protected static function uncheckOption(string $option, string $legend = null): void
+    protected static function uncheckOption(string $option, string $legend = null, string $contextSelector = null): void
     {
-        $field = self::findFormField($option, $legend);
+        $field = self::findFormField($option, $legend, $contextSelector);
         $form = $field->filterXPath('ancestor::form')->form();
         $name = $field->attr('name');
         PHPUnit::assertInstanceOf(ChoiceFormField::class, $form[$name]);
@@ -242,9 +249,7 @@ trait PantherActions
 
     protected static function assertNumberOfElements(int $count, string $selector): void
     {
-        $elements = PantherTestCase::createPantherClient()
-            ->findElements(WebDriverBy::cssSelector($selector))
-        ;
+        $elements = self::crawlerBySelector($selector);
         PHPUnit::assertCount($count, $elements);
     }
 
@@ -252,27 +257,28 @@ trait PantherActions
     {
         $client = PantherTestCase::createPantherClient();
         $client->executeScript("document.querySelector('{$selector}').formNoValidate=true");
-        $form = self::crawler()
-            ->filter($selector)
+        $form = self::crawlerBySelector($selector)
             ->form()
         ;
         $client->submit($form);
     }
 
-    protected static function findFormField(string $fieldText, string $legend = null): Crawler
+    protected static function findFormField(string $fieldText, string $legend = null, string $contextSelector = null): Crawler
     {
         $xpath = <<<'XPATH'
             [
                 contains(concat(' ', normalize-space(text()), ' '), %1$s) or
                 contains(concat(' ', normalize-space(string(@value)), ' '), %1$s) or
                 @id=%2$s or
-                @name=%2$s
+                @name=%2$s or
+                @placeholder=%2$s
             ]
             XPATH;
 
-        $fieldset = null;
+        $crawler = self::crawlerBySelector($contextSelector);
+
         if ($legend !== null) {
-            $fieldset = self::crawler()
+            $crawler = $crawler
                 ->filterXPath(
                     sprintf(
                         '//legend' . $xpath . '/ancestor::fieldset',
@@ -287,7 +293,7 @@ trait PantherActions
             $parts[] = $tag . $xpath;
         }
 
-        $field = ($fieldset ?? self::crawler())
+        $field = $crawler
             ->filterXPath(
                 sprintf(
                     implode(' | ', $parts),
@@ -314,11 +320,20 @@ trait PantherActions
         return PantherTestCase::createPantherClient()->getCrawler();
     }
 
+    protected static function crawlerBySelector(string $selector = null): Crawler
+    {
+        if ($selector === null) {
+            return self::crawler();
+        }
+
+        return self::crawler()->filter($selector);
+    }
+
     protected static function bodyText(): string
     {
         return self::crawler()
             ->filter('body')
             ->text()
-            ;
+        ;
     }
 }
