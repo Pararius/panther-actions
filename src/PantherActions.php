@@ -1,10 +1,17 @@
 <?php
 
+/** @noinspection PhpMultipleClassDeclarationsInspection */
+
 declare(strict_types=1);
 
 namespace PantherActions;
 
-use PHPUnit\Framework\Assert as PHPUnit;
+use Facebook\WebDriver\Exception\NoSuchElementException;
+use InvalidArgumentException;
+use PHPUnit\Framework\Assert;
+use PHPUnit\Framework\AssertionFailedError;
+use RuntimeException;
+use Symfony\Component\Panther\Client;
 use Symfony\Component\Panther\DomCrawler\Crawler;
 use Symfony\Component\Panther\DomCrawler\Field\ChoiceFormField;
 use Symfony\Component\Panther\PantherTestCase;
@@ -20,34 +27,35 @@ trait PantherActions
     {
         $page = '/' . ltrim($page, '/');
 
-        PantherTestCase::createPantherClient()->request('GET', $page);
+        self::client()->request('GET', $page);
     }
 
     protected static function assertCurrentAddressMatches(string $page): void
     {
-        \assert(PantherTestCase::$baseUri !== null);
+        self::assertNotNull(PantherTestCase::$baseUri);
+
         $startUrl = rtrim(PantherTestCase::$baseUri, '/') . '/';
         $page = !str_starts_with($page, 'http') ? $startUrl . ltrim($page, '/') : $page;
 
-        PHPUnit::assertSame(
+        Assert::assertSame(
             $page,
-            PantherTestCase::createPantherClient()->getCurrentURL()
+            self::client()->getCurrentURL()
         );
     }
 
     protected static function assertCurrentAddressMatchesPattern(string $pattern): void
     {
-        PHPUnit::assertMatchesRegularExpression(
+        Assert::assertMatchesRegularExpression(
             $pattern,
-            PantherTestCase::createPantherClient()->getCurrentURL()
+            self::client()->getCurrentURL()
         );
     }
 
     protected static function assertCurrentAddressContains(string $path): void
     {
-        PHPUnit::assertStringContainsString(
+        Assert::assertStringContainsString(
             $path,
-            PantherTestCase::createPantherClient()->getCurrentURL()
+            self::client()->getCurrentURL()
         );
     }
 
@@ -58,7 +66,7 @@ trait PantherActions
 
     protected static function followLink(string $linkText, string $contextSelector = null): void
     {
-        $client = PantherTestCase::createPantherClient();
+        $client = self::client();
 
         $crawler = self::crawlerBySelector($contextSelector);
 
@@ -97,7 +105,7 @@ trait PantherActions
                 Crawler::xpathLiteral(' ' . $button . ' ')
             )
         );
-        $client = PantherTestCase::createPantherClient();
+        $client = self::client();
         if ($form->nodeName() === 'form') {
             $client->submit($form->form());
         } else {
@@ -114,7 +122,7 @@ trait PantherActions
     protected static function assertButtonVisible(string $button, string $contextSelector = null): void
     {
         $crawler = self::crawlerBySelector($contextSelector);
-        PHPUnit::assertNotCount(
+        Assert::assertNotCount(
             0,
             $crawler->selectButton($button)
         );
@@ -123,7 +131,7 @@ trait PantherActions
     protected static function assertButtonNotVisible(string $button, string $contextSelector = null): void
     {
         $crawler = self::crawlerBySelector($contextSelector);
-        PHPUnit::assertCount(
+        Assert::assertCount(
             0,
             $crawler->selectButton($button)
         );
@@ -132,7 +140,7 @@ trait PantherActions
     protected static function assertLinkVisible(string $link, string $contextSelector = null): void
     {
         $crawler = self::crawlerBySelector($contextSelector);
-        PHPUnit::assertNotCount(
+        Assert::assertNotCount(
             0,
             $crawler->selectLink($link)
         );
@@ -141,7 +149,7 @@ trait PantherActions
     protected static function assertLinkNotVisible(string $link, string $contextSelector = null): void
     {
         $crawler = self::crawlerBySelector($contextSelector);
-        PHPUnit::assertCount(
+        Assert::assertCount(
             0,
             $crawler->selectLink($link)
         );
@@ -152,36 +160,36 @@ trait PantherActions
         $body = self::bodyText();
         $body = preg_replace('#\R#', ' ', $body);
         \assert($body !== null);
-        PHPUnit::assertStringContainsStringIgnoringCase($text, $body);
+        Assert::assertStringContainsStringIgnoringCase($text, $body);
     }
 
     protected static function assertPageDoesNotContainText(string $text): void
     {
         $body = self::bodyText();
-        PHPUnit::assertStringNotContainsStringIgnoringCase($text, $body);
+        Assert::assertStringNotContainsStringIgnoringCase($text, $body);
     }
 
     protected static function assertPageContainsTextMatchingPattern(string $pattern): void
     {
         $body = self::bodyText();
-        PHPUnit::assertMatchesRegularExpression($pattern, $body);
+        Assert::assertMatchesRegularExpression($pattern, $body);
     }
 
     protected static function assertPageNotContainsTextMatchingPattern(string $pattern): void
     {
         $body = self::bodyText();
-        PHPUnit::assertDoesNotMatchRegularExpression($pattern, $body);
+        Assert::assertDoesNotMatchRegularExpression($pattern, $body);
     }
 
     protected static function assertResponseShouldContain(string $text): void
     {
-        $html = PantherTestCase::createPantherClient()->getPageSource();
-        PHPUnit::assertStringContainsStringIgnoringCase($text, $html);
+        $html = self::client()->getPageSource();
+        Assert::assertStringContainsStringIgnoringCase($text, $html);
     }
 
     protected static function assertPageTitleContainsIgnoringCase(string $expectedTitle): void
     {
-        $title = PantherTestCase::createPantherClient()->getTitle();
+        $title = self::client()->getTitle();
         self::assertStringContainsStringIgnoringCase($expectedTitle, $title);
     }
 
@@ -192,13 +200,21 @@ trait PantherActions
 
     protected static function fillField(string $fieldText, string $value, string $legend = null, string $contextSelector = null): void
     {
-        $field = self::findFormField($fieldText, $legend, $contextSelector);
-        $field
-            ->filterXPath('ancestor::form')
-            ->form([
-                $field->attr('name') => $value,
-            ])
-        ;
+        try {
+            $field = self::findFormField($fieldText, $legend, $contextSelector);
+            $field
+                ->filterXPath('ancestor::form')
+                ->form([
+                    $field->attr('name') => $value,
+                ])
+            ;
+        } catch (InvalidArgumentException | NoSuchElementException $exception) {
+            throw new RuntimeException(
+                "Could not fill form field \"{$fieldText}\"",
+                $exception->getCode(),
+                $exception
+            );
+        }
     }
 
     protected static function selectOption(string $select, string $option, string $legend = null, string $contextSelector = null): void
@@ -206,7 +222,7 @@ trait PantherActions
         $field = self::findFormField($select, $legend, $contextSelector);
         $form = $field->filterXPath('ancestor::form')->form();
         $name = $field->attr('name');
-        PHPUnit::assertInstanceOf(ChoiceFormField::class, $form[$name]);
+        Assert::assertInstanceOf(ChoiceFormField::class, $form[$name]);
         \assert($form[$name] instanceof ChoiceFormField);
         $form[$name]->select($option);
     }
@@ -216,7 +232,7 @@ trait PantherActions
         $field = self::findFormField($option, $legend, $contextSelector);
         $form = $field->filterXPath('ancestor::form')->form();
         $name = $field->attr('name');
-        PHPUnit::assertInstanceOf(ChoiceFormField::class, $form[$name]);
+        Assert::assertInstanceOf(ChoiceFormField::class, $form[$name]);
         \assert($form[$name] instanceof ChoiceFormField);
         $value = $field->attr('value');
         \assert($value !== null);
@@ -228,14 +244,14 @@ trait PantherActions
         $field = self::findFormField($option, $legend, $contextSelector);
         $form = $field->filterXPath('ancestor::form')->form();
         $name = $field->attr('name');
-        PHPUnit::assertInstanceOf(ChoiceFormField::class, $form[$name]);
+        Assert::assertInstanceOf(ChoiceFormField::class, $form[$name]);
         \assert($form[$name] instanceof ChoiceFormField);
         $form[$name]->untick();
     }
 
     protected static function printLastResponse(): void
     {
-        $client = PantherTestCase::createPantherClient();
+        $client = self::client();
         echo $client->getCurrentUrl() . "\n\n" .
             $client->getPageSource()
         ;
@@ -243,19 +259,20 @@ trait PantherActions
 
     protected static function printCookies(): void
     {
-        $client = PantherTestCase::createPantherClient();
+        $client = self::client();
+        /** @noinspection ForgottenDebugOutputInspection */
         print_r($client->getCookieJar()->all());
     }
 
     protected static function assertNumberOfElements(int $count, string $selector): void
     {
         $elements = self::crawlerBySelector($selector);
-        PHPUnit::assertCount($count, $elements);
+        Assert::assertCount($count, $elements);
     }
 
     protected static function submitForm(string $selector): void
     {
-        $client = PantherTestCase::createPantherClient();
+        $client = self::client();
         $client->executeScript("document.querySelector('{$selector}').formNoValidate=true");
         $form = self::crawlerBySelector($selector)
             ->form()
@@ -267,7 +284,7 @@ trait PantherActions
     {
         $xpath = <<<'XPATH'
             [
-                contains(concat(' ', normalize-space(text()), ' '), %1$s) or
+                contains(concat(' ', normalize-space(string(.)), ' '), %1$s) or
                 contains(concat(' ', normalize-space(string(@value)), ' '), %1$s) or
                 @id=%2$s or
                 @name=%2$s or
@@ -306,10 +323,8 @@ trait PantherActions
         \assert($field instanceof Crawler);
 
         // Find input field connected to label.
-        if ($field->getTagName() === 'label') {
-            $field = self::crawler()
-                ->filter('#' . $field->attr('for'))
-            ;
+        if ($field->nodeName() === 'label' && $id = $field->attr('for')) {
+            $field = self::crawler()->filter("#{$id}");
         }
 
         return $field;
@@ -317,7 +332,7 @@ trait PantherActions
 
     protected static function crawler(): Crawler
     {
-        return PantherTestCase::createPantherClient()->getCrawler();
+        return self::client()->getCrawler();
     }
 
     protected static function crawlerBySelector(string $selector = null): Crawler
@@ -335,5 +350,15 @@ trait PantherActions
             ->filter('body')
             ->text()
         ;
+    }
+
+    /**
+     * @param array<string, mixed> $options
+     * @param array<string, mixed> $kernelOptions
+     * @param array<string, mixed> $managerOptions
+     */
+    protected static function client(array $options = [], array $kernelOptions = [], array $managerOptions = []): Client
+    {
+        return PantherTestCase::createPantherClient($options, $kernelOptions, $managerOptions);
     }
 }
