@@ -12,8 +12,8 @@ jobs:
       fail-fast: false
       matrix:
         php:
-        - 8.0
-        - 8.1
+        - '8.0'
+        - '8.1'
         deps:
         - "--prefer-stable"
         - "--prefer-lowest"

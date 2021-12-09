@@ -18,6 +18,7 @@
     "php": ">=8.0",
     "ext-dom": "*",
     "ext-libxml": "*",
+    "ext-zip": "*",
     "symfony/panther": "^2.0",
     "phpunit/phpunit": "^9.5"
   },

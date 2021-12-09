@@ -1,36 +1,32 @@
 version: '3.7'
 
+x-php:
+  &php
+  build:
+    args:
+      PHP_VERSION: ${PHP_VERSION:-8.0}
+  env_file:
+  - .env
+  volumes:
+  - ./:/app:delegated
+  - ~/.composer/cache:/composer/cache:delegated
+  networks:
+  - panther
+
 services:
   php:
-    build:
-      context: .
-      target: php
-    env_file:
-      - .env
-    volumes:
-    - ./:/app:delegated
-    networks:
-    - test
+    <<: *php
 
   ready:
     image: jwilder/dockerize
     networks:
-    - test
+    - panther
 
   test-webserver:
-    build:
-      context: .
-      target: php
+    <<: *php
     command: [ "php", "-dvariables_order=EGPCS", "-S", "0.0.0.0:9080", "-t", "/app/tests/public" ]
-    environment:
-      APP_ENV: test
-    volumes:
-    - ./:/app:delegated
-    - ~/.composer/cache:/composer/cache:delegated
     ports:
     - "9080:9080"
-    networks:
-    - test
 
 networks:
-  test:
+  panther:
