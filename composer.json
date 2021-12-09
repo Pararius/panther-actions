@@ -24,6 +24,7 @@
   "require-dev": {
     "behat/behat": "^3.8",
     "pararius/cs": "^0.1.0",
+    "phpstan/extension-installer": "^1.1",
     "phpstan/phpstan": "^1.0",
     "phpstan/phpstan-phpunit": "^1.0",
     "symfony/dotenv": "^5.3 || ^6.0",

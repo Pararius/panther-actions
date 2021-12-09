@@ -1,7 +1,5 @@
 <?php
 
-/** @noinspection PhpMultipleClassDeclarationsInspection */
-
 declare(strict_types=1);
 
 namespace PantherActions;
@@ -9,7 +7,6 @@ namespace PantherActions;
 use Facebook\WebDriver\Exception\NoSuchElementException;
 use InvalidArgumentException;
 use PHPUnit\Framework\Assert;
-use PHPUnit\Framework\AssertionFailedError;
 use RuntimeException;
 use Symfony\Component\Panther\Client;
 use Symfony\Component\Panther\DomCrawler\Crawler;
@@ -260,7 +257,6 @@ trait PantherActions
     protected static function printCookies(): void
     {
         $client = self::client();
-        /** @noinspection ForgottenDebugOutputInspection */
         print_r($client->getCookieJar()->all());
     }
 
