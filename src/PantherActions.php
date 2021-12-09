@@ -205,7 +205,7 @@ trait PantherActions
                     $field->attr('name') => $value,
                 ])
             ;
-        } catch (InvalidArgumentException | NoSuchElementException $exception) {
+        } catch (InvalidArgumentException|NoSuchElementException $exception) {
             throw new RuntimeException(
                 "Could not fill form field \"{$fieldText}\"",
                 $exception->getCode(),
