@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <title>Index page</title>
+  </head>
+  <body>
+    <form>
+      <label>
+        First input
+        <input type="text" name="fld1" id="fld-without-fieldset">
+      </label>
+    </form>
+    <form>
+      <fieldset>
+        <legend>Legendary</legend>
+        <label>
+          Second input
+          <input type="text" name="fld1" id="fld-with-fieldset-1">
+        </label>
+      </fieldset>
+    </form>
+    <div id="nested-structure">
+      <form>
+        <fieldset>
+          <legend>Legendary</legend>
+          <label>
+            Third input
+            <input type="text" name="fld1" id="fld-with-fieldset-2">
+          </label>
+        </fieldset>
+      </form>
+    </div>
+  </body>
+</html>

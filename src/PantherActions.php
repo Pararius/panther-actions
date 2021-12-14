@@ -5,9 +5,7 @@ declare(strict_types=1);
 namespace PantherActions;
 
 use function array_map;
-use Facebook\WebDriver\Exception\NoSuchElementException;
 use function implode;
-use InvalidArgumentException;
 use PHPUnit\Framework\Assert;
 use RuntimeException;
 use function sprintf;
@@ -15,6 +13,7 @@ use Symfony\Component\Panther\Client;
 use Symfony\Component\Panther\DomCrawler\Crawler;
 use Symfony\Component\Panther\DomCrawler\Field\ChoiceFormField;
 use Symfony\Component\Panther\PantherTestCase;
+use function trim;
 
 trait PantherActions
 {
@@ -200,21 +199,13 @@ trait PantherActions
 
     protected static function fillField(string $fieldText, string $value, string $legend = null, string $contextSelector = null): void
     {
-        try {
-            $field = self::findFormField($fieldText, $legend, $contextSelector);
-            $field
-                ->filterXPath('ancestor::form')
-                ->form([
-                    $field->attr('name') => $value,
-                ])
-            ;
-        } catch (InvalidArgumentException|NoSuchElementException $exception) {
-            throw new RuntimeException(
-                "Could not fill form field \"{$fieldText}\"",
-                $exception->getCode(),
-                $exception
-            );
-        }
+        $field = self::findFormField($fieldText, $legend, $contextSelector);
+        $field
+            ->filterXPath('ancestor::form')
+            ->form([
+                $field->attr('name') => $value,
+            ])
+        ;
     }
 
     protected static function selectOption(string $select, string $option, string $legend = null, string $contextSelector = null): void
@@ -287,30 +278,47 @@ trait PantherActions
         // if legend is given, search for that and get its fieldset
         if ($legend !== null) {
             $crawler = $crawler->filterXPath(
-                self::formFieldXpath('//legend', $legend) . '/ancestor::fieldset'
+                self::formFieldXpath('descendant-or-self::legend', $legend) . '/ancestor::fieldset'
             );
         }
 
         // find form labels or elements with the given `$fieldText` as id, name, text, or placeholder
         $field = $crawler->filterXPath(
             implode(' | ', array_map(
-                static fn (string $tag): string => self::formFieldXpath($tag, $fieldText),
-                ['//label', '//input', '//select', '//option', '//textarea']
+                static fn (string $tag): string => self::formFieldXpath("descendant-or-self::{$tag}", $fieldText),
+                ['label', 'input', 'select', 'option', 'textarea'],
             ))
         );
 
+        $foundFieldTag = $field->getElement(0)?->getTagName();
+
+        // Find input field connected to label.
+        if ($foundFieldTag === 'label') {
+            if ($id = trim($field->attr('for'))) {
+                // filter by id
+                $field = self::crawler()->filter("#{$id}");
+            } else {
+                // search for input types in descendants
+                $field = $field->filterXPath(
+                    implode(' | ', array_map(
+                        static fn (string $tag): string => "descendant::{$tag}",
+                        ['input | select | option | textarea'],
+                    ))
+                );
+            }
+        }
+
         if ($field->count() === 0) {
-            $message = "Could not fill form field \"{$fieldText}\"";
+            $message = ($foundFieldTag === 'label')
+                ? "Label found for form field \"{$fieldText}\", but no input is associated with it"
+                : "Could not find form field \"{$fieldText}\""
+            ;
+
             if ($contextSelector) {
-                $message .= " in \"{$contextSelector}\"";
+                $message .= " in selector: {$contextSelector}";
             }
 
             throw new RuntimeException($message);
-        }
-
-        // Find input field connected to label.
-        if ($field->nodeName() === 'label' && $id = $field->attr('for')) {
-            $field = self::crawler()->filter("#{$id}");
         }
 
         return $field;
