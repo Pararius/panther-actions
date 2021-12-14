@@ -233,4 +233,14 @@ final class PantherActionsTest extends PantherTestCase
 
         self::fillField('Textfield', 'foo');
     }
+
+    /** @test */
+    public function it_throws_when_finding_non_existing_form_field(): void
+    {
+        self::goTo('/form.html');
+
+        $this->expectException(RuntimeException::class);
+
+        self::findFormField('not found', null, 'form[name="form"]');
+    }
 }

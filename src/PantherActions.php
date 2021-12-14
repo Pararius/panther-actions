@@ -4,10 +4,13 @@ declare(strict_types=1);
 
 namespace PantherActions;
 
+use function array_map;
 use Facebook\WebDriver\Exception\NoSuchElementException;
+use function implode;
 use InvalidArgumentException;
 use PHPUnit\Framework\Assert;
 use RuntimeException;
+use function sprintf;
 use Symfony\Component\Panther\Client;
 use Symfony\Component\Panther\DomCrawler\Crawler;
 use Symfony\Component\Panther\DomCrawler\Field\ChoiceFormField;
@@ -278,45 +281,32 @@ trait PantherActions
 
     protected static function findFormField(string $fieldText, string $legend = null, string $contextSelector = null): Crawler
     {
-        $xpath = <<<'XPATH'
-            [
-                contains(concat(' ', normalize-space(string(.)), ' '), %1$s) or
-                contains(concat(' ', normalize-space(string(@value)), ' '), %1$s) or
-                @id=%2$s or
-                @name=%2$s or
-                @placeholder=%2$s
-            ]
-            XPATH;
-
+        // create crawler, optionally start by context
         $crawler = self::crawlerBySelector($contextSelector);
 
+        // if legend is given, search for that and get its fieldset
         if ($legend !== null) {
-            $crawler = $crawler
-                ->filterXPath(
-                    sprintf(
-                        '//legend' . $xpath . '/ancestor::fieldset',
-                        Crawler::xpathLiteral(' ' . $legend . ' '),
-                        Crawler::xpathLiteral($legend),
-                    )
-                )
-            ;
+            $crawler = $crawler->filterXPath(
+                self::formFieldXpath('//legend', $legend) . '/ancestor::fieldset'
+            );
         }
 
-        foreach (['//input', '//label', '//select', '//option'] as $tag) {
-            $parts[] = $tag . $xpath;
+        // find form labels or elements with the given `$fieldText` as id, name, text, or placeholder
+        $field = $crawler->filterXPath(
+            implode(' | ', array_map(
+                static fn (string $tag): string => self::formFieldXpath($tag, $fieldText),
+                ['//label', '//input', '//select', '//option', '//textarea']
+            ))
+        );
+
+        if ($field->count() === 0) {
+            $message = "Could not fill form field \"{$fieldText}\"";
+            if ($contextSelector) {
+                $message .= " in \"{$contextSelector}\"";
+            }
+
+            throw new RuntimeException($message);
         }
-
-        $field = $crawler
-            ->filterXPath(
-                sprintf(
-                    implode(' | ', $parts),
-                    Crawler::xpathLiteral(' ' . $fieldText . ' '),
-                    Crawler::xpathLiteral($fieldText),
-                )
-            )
-        ;
-
-        \assert($field instanceof Crawler);
 
         // Find input field connected to label.
         if ($field->nodeName() === 'label' && $id = $field->attr('for')) {
@@ -356,5 +346,23 @@ trait PantherActions
     protected static function client(array $options = [], array $kernelOptions = [], array $managerOptions = []): Client
     {
         return PantherTestCase::createPantherClient($options, $kernelOptions, $managerOptions);
+    }
+
+    protected static function formFieldXpath(string $fieldType, string $text): string
+    {
+        return sprintf(
+            <<<'XPATH'
+                %1$s[
+                    contains(concat(' ', normalize-space(string(.)), ' '), %2$s) or
+                    contains(concat(' ', normalize-space(string(@value)), ' '), %2$s) or
+                    @id=%3$s or
+                    @name=%3$s or
+                    @placeholder=%3$s
+                ]
+                XPATH,
+            $fieldType,
+            Crawler::xpathLiteral(' ' . $text . ' '),
+            Crawler::xpathLiteral($text),
+        );
     }
 }
