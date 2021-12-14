@@ -294,7 +294,7 @@ trait PantherActions
 
         // Find input field connected to label.
         if ($foundFieldTag === 'label') {
-            if ($id = trim($field->attr('for'))) {
+            if ($id = trim($field->attr('for') ?? '')) {
                 // filter by id
                 $field = self::crawler()->filter("#{$id}");
             } else {
