@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\PantherActions;
 
 use PantherActions\PantherActions;
+use RuntimeException;
 use Symfony\Component\Panther\PantherTestCase;
 
 final class PantherActionsTest extends PantherTestCase
@@ -191,7 +192,7 @@ final class PantherActionsTest extends PantherTestCase
     }
 
     /** @test */
-    public function it_fills_a_textfield(): void
+    public function it_fills_a_textfield_by_label(): void
     {
         self::goTo('/form.html');
         self::assertCurrentAddressMatches('/form.html');
@@ -210,5 +211,26 @@ final class PantherActionsTest extends PantherTestCase
         $value = 'Value of the textfield';
         self::fillField('textfield with placeholder', $value);
         self::assertFormValue('form', 'placeholder', $value);
+    }
+
+    /** @test */
+    public function it_can_fill_a_field_by_nested_label(): void
+    {
+        self::goTo('/form-label-nested-text.html');
+
+        $value = 'Value of the textfield';
+        self::fillField('Textfield', $value);
+        self::assertFormValue('form', 'fld', $value);
+    }
+
+    /** @test */
+    public function it_cannot_fill_a_field_by_label_without_id(): void
+    {
+        self::goTo('/form-label-without-id.html');
+
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('Could not fill form field');
+
+        self::fillField('Textfield', 'foo');
     }
 }

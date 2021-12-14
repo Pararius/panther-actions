@@ -5,29 +5,27 @@ on:
   pull_request:
 
 env:
-  DOCKER_COMPOSE: docker-compose
   DOCKER_BUILDKIT: 1
   COMPOSE_DOCKER_CLI_BUILD: 1
 
 jobs:
-  init:
-    runs-on: ubuntu-latest
-    outputs:
-      application: ${{ steps.filter.outputs.application }}
-    steps:
-    - uses: styfle/cancel-workflow-action@0.9.1
-
-  checks:
+  test:
     timeout-minutes: 5
     runs-on: ubuntu-latest
-    needs: [init]
+    strategy:
+      fail-fast: false
+      matrix:
+        php:
+        - '8.0'
+        - '8.1'
+        deps:
+        - "--prefer-stable"
+        - "--prefer-lowest"
+    env:
+      PHP_VERSION: ${{ matrix.php }}
     steps:
     - uses: actions/checkout@v2.4.0
-    - uses: satackey/action-docker-layer-caching@v0.0.11
-      continue-on-error: true
-      with:
-        key: ${{ github.workflow }}-${{ hashFiles('Dockerfile') }}-{hash}
-        restore-keys: ${{ github.workflow }}-${{ hashFiles('Dockerfile') }}-
+    - uses: styfle/cancel-workflow-action@0.9.1
     - name: Setup Composer cache
       uses: actions/cache@v2.1.7
       with:
@@ -36,6 +34,11 @@ jobs:
           composer-${{ hashFiles('composer.json') }}
           composer-
     - run: make install
-    - run: make cs-check
-    - run: make phpstan
-    - run: make test
+    - name: Code style
+      if: ${{ matrix.php == '8.0' && matrix.deps == '--prefer-stable' }}
+      run: make cs-check
+    - name: Static analysis
+      if: ${{ matrix.php == '8.0' && matrix.deps == '--prefer-stable' }}
+      run: make phpstan
+    - name: Test suite
+      run: make test
