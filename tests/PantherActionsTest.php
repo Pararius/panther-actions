@@ -214,23 +214,65 @@ final class PantherActionsTest extends PantherTestCase
     }
 
     /** @test */
-    public function it_can_fill_a_field_by_nested_label(): void
+    public function it_fills_a_textarea(): void
     {
-        self::goTo('/form-label-nested-text.html');
+        self::goTo('/form.html');
+        self::assertCurrentAddressMatches('/form.html');
 
-        $value = 'Value of the textfield';
-        self::fillField('Textfield', $value);
-        self::assertFormValue('form', 'fld', $value);
+        self::assertFormValue('form', 'a-textarea', 'initial text');
+        self::fillField('a-textarea', 'New text');
+        self::assertFormValue('form', 'a-textarea', 'New text');
     }
 
     /** @test */
-    public function it_cannot_fill_a_field_by_label_without_id(): void
+    public function it_can_fill_a_field_by_nested_label(): void
+    {
+        self::goTo('/form-label-nested-text.html');
+        self::fillField('Textfield', 'foo');
+        self::assertFormValue('form', 'fld', 'foo');
+    }
+
+    /** @test */
+    public function it_can_fill_a_field_with_connected_label(): void
     {
         self::goTo('/form-label-without-id.html');
+        self::fillField('Textfield', 'foo');
+        self::assertFormValue('form', 'fld', 'foo');
+    }
+
+    /** @test */
+    public function it_cannot_fill_a_field_with_disconnected_label(): void
+    {
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('Label found for form field "Textfield", but no input is associated with it');
+
+        self::goTo('/form-label-disconnected.html');
+        self::fillField('Textfield', 'foo');
+    }
+
+    /** @test */
+    public function it_throws_when_finding_non_existing_form_field(): void
+    {
+        self::goTo('/form.html');
 
         $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessage('Could not fill form field');
+        $this->expectExceptionMessage('Could not find form field "not found" in selector: form[name="form"]');
 
-        self::fillField('Textfield', 'foo');
+        self::findFormField('not found', null, 'form[name="form"]');
+    }
+
+    /** @test */
+    public function it_finds_form_fields_by_fieldset_legend(): void
+    {
+        self::goTo('/form-fieldset.html');
+
+        $field = self::findFormField('fld1');
+        self::assertSame('fld-without-fieldset', $field->attr('id'));
+
+        $field = self::findFormField('fld1', 'Legendary');
+        self::assertSame('fld-with-fieldset-1', $field->attr('id'));
+
+        $field = self::findFormField('fld1', 'Legendary', '#nested-structure');
+        self::assertSame('fld-with-fieldset-2', $field->attr('id'));
     }
 }
