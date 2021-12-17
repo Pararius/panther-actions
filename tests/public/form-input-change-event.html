@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <title>Test page</title>
+  </head>
+  <body>
+    <form>
+      <label>
+        Text input
+        <input type="text" name="fld1" class="input" value="Initial text">
+      </label>
+      <label>
+        Textarea input
+        <textarea name="fld2" class="input">Initial text</textarea>
+      </label>
+    </form>
+  </body>
+  <script>
+    document.querySelectorAll('.input').forEach(input => {
+      input.addEventListener('change', () => input.value = 'changed!')
+    });
+  </script>
+</html>

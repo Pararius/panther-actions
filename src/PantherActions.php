@@ -200,11 +200,21 @@ trait PantherActions
     protected static function fillField(string $fieldText, string $value, string $legend = null, string $contextSelector = null): void
     {
         $field = self::findFormField($fieldText, $legend, $contextSelector);
+
+        $node = $field->nodeName();
+        $name = $field->attr('name');
+
+        // First clear the text, without firing a change event. This prevents such an event being fired when Panther
+        // clears the element before sending the keystrokes to update the value.
+        self::client()->executeScript(
+            <<<JS
+                document.querySelector('{$node}[name="{$name}"]').value = ''
+                JS
+        );
+
         $field
             ->filterXPath('ancestor::form')
-            ->form([
-                $field->attr('name') => $value,
-            ])
+            ->form([$name => $value])
         ;
     }
 
