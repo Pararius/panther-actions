@@ -275,4 +275,18 @@ final class PantherActionsTest extends PantherTestCase
         $field = self::findFormField('fld1', 'Legendary', '#nested-structure');
         self::assertSame('fld-with-fieldset-2', $field->attr('id'));
     }
+
+    /** @test */
+    public function it_does_not_fire_change_event_when_filling_form_field(): void
+    {
+        self::goTo('/form-input-change-event.html');
+
+        self::assertFormValue('form', 'fld1', 'Initial text');
+        self::fillField('fld1', 'Updated text');
+        self::assertFormValue('form', 'fld1', 'Updated text');
+
+        self::assertFormValue('form', 'fld2', 'Initial text');
+        self::fillField('fld2', 'Updated text');
+        self::assertFormValue('form', 'fld2', 'Updated text');
+    }
 }
