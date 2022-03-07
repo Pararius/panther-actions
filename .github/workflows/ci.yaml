@@ -24,7 +24,7 @@ jobs:
     env:
       PHP_VERSION: ${{ matrix.php }}
     steps:
-    - uses: actions/checkout@v2.4.0
+    - uses: actions/checkout@v3
     - uses: styfle/cancel-workflow-action@0.9.1
     - name: Setup Composer cache
       uses: actions/cache@v2.1.7
