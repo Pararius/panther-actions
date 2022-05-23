@@ -8,6 +8,10 @@ env:
   DOCKER_BUILDKIT: 1
   COMPOSE_DOCKER_CLI_BUILD: 1
 
+concurrency: 
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   test:
     timeout-minutes: 5
@@ -25,7 +29,6 @@ jobs:
       PHP_VERSION: ${{ matrix.php }}
     steps:
     - uses: actions/checkout@v3
-    - uses: styfle/cancel-workflow-action@0.9.1
     - name: Setup Composer cache
       uses: actions/cache@v3
       with:
